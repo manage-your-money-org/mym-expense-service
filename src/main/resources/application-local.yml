@@ -25,3 +25,7 @@ server:
 pagination:
   maxPageSizeAllowed: 200
   defaultPageSize: 50
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG

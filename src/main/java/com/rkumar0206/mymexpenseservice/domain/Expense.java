@@ -29,6 +29,6 @@ public class Expense {
     private String uid;
     private String key;
     private String categoryKey;
-    private List<PaymentMethod> paymentMethods;
+    private List<String> paymentMethodKeys;
 
 }

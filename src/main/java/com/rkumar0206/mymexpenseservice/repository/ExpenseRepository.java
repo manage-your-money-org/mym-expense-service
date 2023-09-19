@@ -1,6 +1,7 @@
 package com.rkumar0206.mymexpenseservice.repository;
 
 import com.rkumar0206.mymexpenseservice.domain.Expense;
+import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -14,7 +15,7 @@ public interface ExpenseRepository extends MongoRepository<Expense, String> {
 
     Page<Expense> findByUid(String uid, Pageable pageable);
 
-    Page<Expense> findByUidAndPaymentMethodsKeyIn(String uid, List<String> paymentMethodKeys, Pageable pageable);
+    Page<Expense> findByUidAndPaymentMethodKeysIn(String uid, List<String> paymentMethodKeys, Pageable pageable);
 
     Page<Expense> findByUidAndExpenseDateBetween(String uid, Long startDate, Long endDate, Pageable pageable);
 

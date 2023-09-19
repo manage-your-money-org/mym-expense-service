@@ -1,7 +1,7 @@
 package com.rkumar0206.mymexpenseservice.models.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
+import com.rkumar0206.mymexpenseservice.constantsAndEnums.RequestAction;
 import com.rkumar0206.mymexpenseservice.utility.MymStringUtil;
 import lombok.*;
 
@@ -18,20 +18,24 @@ public class ExpenseRequest {
     private String spentOn;
     private Long expenseDate;
     private String categoryKey;
-    private List<PaymentMethod> paymentMethods;
+    private List<String> paymentMethodsKeys;
+
+    private String key; // for update
 
 
     @JsonIgnore
-    public boolean isValid() {
+    public boolean isValid(RequestAction action) {
 
         boolean isValid = amount != null && MymStringUtil.isValid(categoryKey);
 
-        if (isValid && paymentMethods != null) {
+        if (isValid && paymentMethodsKeys != null) {
 
-            for (PaymentMethod p : paymentMethods) {
+            isValid = !paymentMethodsKeys.isEmpty();
+        }
 
-                isValid = MymStringUtil.isValid(p.getPaymentMethodName());
-            }
+        if (isValid && action == RequestAction.UPDATE) {
+
+            isValid = MymStringUtil.isValid(key);
         }
 
         return isValid;
