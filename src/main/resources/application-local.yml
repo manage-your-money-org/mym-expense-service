@@ -24,7 +24,6 @@ server:
 
 pagination:
   maxPageSizeAllowed: 200
-  defaultPageSize: 50
 
 logging:
   level:

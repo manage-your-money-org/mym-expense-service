@@ -14,5 +14,5 @@ public interface PaymentMethodRepository extends MongoRepository<PaymentMethod, 
 
     List<PaymentMethod> findByUid(String uid);
 
-    List<PaymentMethod> findByKeyIn(List<String> keys);
+    List<PaymentMethod> findByUidAndKeyIn(String uid, List<String> keys);
 }

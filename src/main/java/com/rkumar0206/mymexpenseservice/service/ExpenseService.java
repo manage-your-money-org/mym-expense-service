@@ -16,17 +16,18 @@ public interface ExpenseService {
 
     ExpenseResponse update(ExpenseRequest request);
 
-    Optional<Expense> getExpenseByKey(String key);
+    ExpenseResponse getExpenseByKey(String key);
 
-    Page<Expense> getUserExpenses(Pageable pageable);
+    Page<ExpenseResponse> getUserExpenses(Pageable pageable);
 
-    Page<Expense> getUserExpenseByPaymentMethodKey(Pageable pageable, List<String> paymentMethodKeys);
+    Page<ExpenseResponse> getUserExpenseByPaymentMethodKey(Pageable pageable, List<String> paymentMethodKeys);
 
-    Page<Expense> getExpenseBetweenStartDateAndEndDate(Pageable pageable, Long startDate, Long endDate);
+    Page<ExpenseResponse> getExpenseBetweenStartDateAndEndDate(Pageable pageable, Long startDate, Long endDate);
 
-    Page<Expense> getExpenseByCategoryKey(Pageable pageable, String categoryKey);
+    Page<ExpenseResponse> getExpenseByCategoryKey(Pageable pageable, String categoryKey);
 
-    List<PaymentMethod> getAllPaymentMethodsOfUser();
+    void deleteExpense(String key);
 
-    List<PaymentMethod> getPaymentMethodsByKeys(List<String> keys);
+    void deleteExpenseByCategoryKey(String categoryKey);
+
 }
