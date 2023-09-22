@@ -233,21 +233,6 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 
         return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
-
-    }
-
-    /**
-     * @param categoryKey       (Required)
-     * @param dateRange         (Optional)
-     * @param paymentMethodKeys (Optional)
-     * @return sum of expense amount for a given category
-     */
-    @Override
-    public ExpenseAmountSum getTotalExpenseAmountByExpenseCategory(String categoryKey, Pair<Long, Long> dateRange, List<String> paymentMethodKeys) {
-
-        return expenseRepository.getTotalExpenseAmountByUidAndExpenseCategory(
-                getUserInfo().getUid(), categoryKey, paymentMethodKeys, dateRange
-        );
     }
 
     /**
@@ -317,7 +302,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return expenses.getContent().stream().map(e -> {
 
-            List<PaymentMethod> paymentMethods = new ArrayList<>();
+                    List<PaymentMethod> paymentMethods = new ArrayList<>();
 
                     if (!e.getPaymentMethodKeys().isEmpty()) {
                         paymentMethods = paymentMethodRepository.findByUidAndKeyIn(uid, e.getPaymentMethodKeys());

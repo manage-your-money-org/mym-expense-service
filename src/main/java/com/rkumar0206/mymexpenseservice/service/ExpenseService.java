@@ -28,8 +28,6 @@ public interface ExpenseService {
 
     Page<ExpenseResponse> getExpenseByCategoryKeyAndDateRange(Pageable pageable, String categoryKey, Long startDate, Long endDate);
 
-    ExpenseAmountSum getTotalExpenseAmountByExpenseCategory(String categoryKey, Pair<Long, Long> dateRange, List<String> paymentMethodKeys);
-
     ExpenseAmountSum getTotalExpenseByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 
     ExpenseAmountSum getTotalExpenseAmount(List<String> paymentMethodKeys, Pair<Long, Long> dateRange);

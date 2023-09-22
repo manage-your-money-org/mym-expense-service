@@ -24,18 +24,4 @@ public interface ExpenseRepository extends MongoRepository<Expense, String>, Cus
 
     //getExpenseByDateRangeAndExpenseCategoryKey
     Page<Expense> findByUidAndCategoryKeyAndExpenseDateBetween(String uid, String categoryKey, Long startDate, Long endDate, Pageable pageable);
-
-    //getTotalExpenseAmountByExpenseCategory            --- DONE
-    //getTotalExpenseAmountByUid                        --- DONE
-    //getTotalExpenseAmountByDateRange                  --- DONE
-    //getTotalExpenseAmountByCategoryKeyAndDateRange    --- DONE
-    //getTotalExpenseByCategoryKeys                     --- DONE
-    //getTotalExpenseByCategoryKeysAndDateRange         --- DONE
-
-    //getTotalExpenseAmountsWithTheirExpenseCategoryKeys          -- DONE
-    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysByListOfExpenseKeys  -- DONE
-    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysByDateRange       -- DONE
-    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysByDateRangeAndByListOfExpenseKeys -- DONE
-    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysForSelectedExpenseCategories  --DONE
-    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysForSelectedExpenseCategoriesByDateRange -- DONE
 }

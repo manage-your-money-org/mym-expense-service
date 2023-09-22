@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface CustomExpenseRepository {
 
-    ExpenseAmountSum getTotalExpenseAmountByUidAndExpenseCategory(String uid, String categoryKey, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
-
     ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 
     ExpenseAmountSum getTotalExpenseByUidAndCategoryKeys(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);

@@ -20,25 +20,6 @@ public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public ExpenseAmountSum getTotalExpenseAmountByUidAndExpenseCategory(String uid, String categoryKey, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
-
-        Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
-
-        Criteria paymentMethodCriteria = (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria();
-
-        Criteria criteria = new Criteria().andOperator(
-                Criteria.where("uid").is(uid),
-                Criteria.where("categoryKey").is(categoryKey),
-                dateRangeCriteria.getFirst(),
-                dateRangeCriteria.getSecond(),
-                paymentMethodCriteria
-        );
-
-        return getTotalExpenseAmountByMatchingCriteria(criteria);
-    }
-
-
-    @Override
     public ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
 
         Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
