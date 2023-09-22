@@ -5,6 +5,8 @@ import com.rkumar0206.mymexpenseservice.domain.Expense;
 import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
 import com.rkumar0206.mymexpenseservice.exception.ExpenseException;
 import com.rkumar0206.mymexpenseservice.models.UserInfo;
+import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
+import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.repository.ExpenseRepository;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -218,6 +221,95 @@ public class ExpenseServiceImpl implements ExpenseService {
         return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
     }
 
+    @Override
+    public Page<ExpenseResponse> getExpenseByCategoryKeyAndDateRange(Pageable pageable, String categoryKey, Long startDate, Long endDate) {
+
+        String uid = getUserInfo().getUid();
+
+        Page<Expense> expenses = expenseRepository.findByUidAndCategoryKeyAndExpenseDateBetween(uid, categoryKey, startDate, endDate, pageable);
+
+        if (expenses.getTotalElements() == 0)
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+
+
+        return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
+
+    }
+
+    /**
+     * @param categoryKey       (Required)
+     * @param dateRange         (Optional)
+     * @param paymentMethodKeys (Optional)
+     * @return sum of expense amount for a given category
+     */
+    @Override
+    public ExpenseAmountSum getTotalExpenseAmountByExpenseCategory(String categoryKey, Pair<Long, Long> dateRange, List<String> paymentMethodKeys) {
+
+        return expenseRepository.getTotalExpenseAmountByUidAndExpenseCategory(
+                getUserInfo().getUid(), categoryKey, paymentMethodKeys, dateRange
+        );
+    }
+
+    /**
+     * @param categoryKeys      (Required)
+     * @param paymentMethodKeys (Optional)
+     * @param dateRange         (Optional)
+     * @return sum of expense amount by given list of categories
+     */
+    @Override
+    public ExpenseAmountSum getTotalExpenseByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+
+        return expenseRepository.getTotalExpenseByUidAndCategoryKeys(
+                getUserInfo().getUid(), categoryKeys, paymentMethodKeys, dateRange
+        );
+    }
+
+    /**
+     * @param paymentMethodKeys (Optional)
+     * @param dateRange         (Optional)
+     * @return sum of expense amount of a user
+     */
+    @Override
+    public ExpenseAmountSum getTotalExpenseAmount(List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+
+        return expenseRepository.getTotalExpenseAmountByUid(getUserInfo().getUid(), paymentMethodKeys, dateRange);
+    }
+
+
+    /**
+     * @param paymentMethodKeys (Optional)
+     * @param dateRange         (Optional)
+     * @return sum of expense of each category of a user
+     */
+    @Override
+    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+
+        return expenseRepository.getTotalExpenseAmountForEachCategoryByUid(getUserInfo().getUid(), paymentMethodKeys, dateRange);
+    }
+
+    /**
+     * @param categoryKeys      (Required)
+     * @param paymentMethodKeys (Optional)
+     * @param dateRange         (Optional)
+     * @return sum of expense of given categories
+     */
+    @Override
+    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+        return expenseRepository.getTotalExpenseAmountForEachCategoryByUidAndCategoryKeys(getUserInfo().getUid(), categoryKeys, paymentMethodKeys, dateRange);
+    }
+
+    /**
+     * @param keys              (Required)
+     * @param paymentMethodKeys (Optional)
+     * @param dateRange         (Optional)
+     * @return sum of expense of categories for a given expenses
+     */
+    @Override
+    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByKeys(List<String> keys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+
+        return expenseRepository.getTotalExpenseAmountForEachCategoryByUidAndKeys(getUserInfo().getUid(), keys, paymentMethodKeys, dateRange);
+    }
+
     private List<ExpenseResponse> convertExpensePageToExpenseResponseList(Page<Expense> expenses, String uid) {
 
         if (!expenses.getContent().isEmpty() && !expenses.getContent().get(0).getUid().equals(uid))
@@ -225,7 +317,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return expenses.getContent().stream().map(e -> {
 
-                    List<PaymentMethod> paymentMethods = new ArrayList<>();
+            List<PaymentMethod> paymentMethods = new ArrayList<>();
 
                     if (!e.getPaymentMethodKeys().isEmpty()) {
                         paymentMethods = paymentMethodRepository.findByUidAndKeyIn(uid, e.getPaymentMethodKeys());

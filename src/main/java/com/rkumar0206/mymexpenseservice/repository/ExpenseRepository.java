@@ -1,7 +1,6 @@
 package com.rkumar0206.mymexpenseservice.repository;
 
 import com.rkumar0206.mymexpenseservice.domain.Expense;
-import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -9,7 +8,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface ExpenseRepository extends MongoRepository<Expense, String> {
+public interface ExpenseRepository extends MongoRepository<Expense, String>, CustomExpenseRepository {
 
     Optional<Expense> findByKey(String key);
 
@@ -22,4 +21,21 @@ public interface ExpenseRepository extends MongoRepository<Expense, String> {
     Page<Expense> findByUidAndCategoryKey(String uid, String categoryKey, Pageable pageable);
 
     void deleteByUidAndCategoryKey(String uid, String key);
+
+    //getExpenseByDateRangeAndExpenseCategoryKey
+    Page<Expense> findByUidAndCategoryKeyAndExpenseDateBetween(String uid, String categoryKey, Long startDate, Long endDate, Pageable pageable);
+
+    //getTotalExpenseAmountByExpenseCategory            --- DONE
+    //getTotalExpenseAmountByUid                        --- DONE
+    //getTotalExpenseAmountByDateRange                  --- DONE
+    //getTotalExpenseAmountByCategoryKeyAndDateRange    --- DONE
+    //getTotalExpenseByCategoryKeys                     --- DONE
+    //getTotalExpenseByCategoryKeysAndDateRange         --- DONE
+
+    //getTotalExpenseAmountsWithTheirExpenseCategoryKeys          -- DONE
+    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysByListOfExpenseKeys  -- DONE
+    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysByDateRange       -- DONE
+    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysByDateRangeAndByListOfExpenseKeys -- DONE
+    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysForSelectedExpenseCategories  --DONE
+    //getTotalExpenseAmountsWithTheirExpenseCategoryKeysForSelectedExpenseCategoriesByDateRange -- DONE
 }

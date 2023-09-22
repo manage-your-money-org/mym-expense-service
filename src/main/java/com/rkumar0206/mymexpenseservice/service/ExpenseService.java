@@ -1,14 +1,14 @@
 package com.rkumar0206.mymexpenseservice.service;
 
-import com.rkumar0206.mymexpenseservice.domain.Expense;
-import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
+import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
+import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ExpenseService {
 
@@ -25,6 +25,21 @@ public interface ExpenseService {
     Page<ExpenseResponse> getExpenseBetweenStartDateAndEndDate(Pageable pageable, Long startDate, Long endDate);
 
     Page<ExpenseResponse> getExpenseByCategoryKey(Pageable pageable, String categoryKey);
+
+    Page<ExpenseResponse> getExpenseByCategoryKeyAndDateRange(Pageable pageable, String categoryKey, Long startDate, Long endDate);
+
+    ExpenseAmountSum getTotalExpenseAmountByExpenseCategory(String categoryKey, Pair<Long, Long> dateRange, List<String> paymentMethodKeys);
+
+    ExpenseAmountSum getTotalExpenseByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+
+    ExpenseAmountSum getTotalExpenseAmount(List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+
+    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+
+    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+
+    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByKeys(List<String> keys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+
 
     void deleteExpense(String key);
 
