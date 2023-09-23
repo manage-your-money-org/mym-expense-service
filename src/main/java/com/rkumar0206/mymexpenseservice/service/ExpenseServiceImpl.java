@@ -14,6 +14,7 @@ import com.rkumar0206.mymexpenseservice.repository.PaymentMethodRepository;
 import com.rkumar0206.mymexpenseservice.utility.ModelMapper;
 import com.rkumar0206.mymexpenseservice.utility.MymUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
@@ -165,12 +167,33 @@ public class ExpenseServiceImpl implements ExpenseService {
         return ModelMapper.buildExpenseResponse(expense.get(), paymentMethods);
     }
 
+
     @Override
-    public Page<ExpenseResponse> getUserExpenses(Pageable pageable) {
+    public Page<ExpenseResponse> getUserExpenses(
+            Pageable pageable,
+            List<String> categoryKeys,
+            List<String> paymentMethodKeys,
+            Pair<Long, Long> dateRange
+    ) {
 
         String uid = getUserInfo().getUid();
 
-        Page<Expense> expenses = expenseRepository.findByUid(pageable, uid);
+        Page<Expense> expenses;
+
+        if (categoryKeys != null && paymentMethodKeys != null && dateRange != null) {
+
+            // query made by mongo-db
+            expenses = expenseRepository.findByUidAndCategoryKeyInAndPaymentMethodKeysInAndExpenseDateBetween(
+                    uid, categoryKeys, paymentMethodKeys, dateRange.getFirst(), dateRange.getSecond(), pageable
+            );
+
+        } else {
+
+            // custom query
+            expenses = expenseRepository.getExpenseByUid(
+                    pageable, uid, categoryKeys, paymentMethodKeys, dateRange
+            );
+        }
 
         if (expenses.getTotalElements() == 0)
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
@@ -180,60 +203,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         return new PageImpl<>(expenseResponseList, pageable, expenses.getTotalElements());
     }
 
-
-    @Override
-    public Page<ExpenseResponse> getUserExpenseByPaymentMethodKey(Pageable pageable, List<String> paymentMethodKeys) {
-
-        String uid = getUserInfo().getUid();
-
-        Page<Expense> expenses = expenseRepository.findByUidAndPaymentMethodKeysIn(uid, paymentMethodKeys, pageable);
-
-        if (expenses.getTotalElements() == 0)
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-
-        return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
-    }
-
-    @Override
-    public Page<ExpenseResponse> getExpenseBetweenStartDateAndEndDate(Pageable pageable, Long startDate, Long endDate) {
-
-        String uid = getUserInfo().getUid();
-
-        Page<Expense> expenses = expenseRepository.findByUidAndExpenseDateBetween(uid, startDate, endDate, pageable);
-
-        if (expenses.getTotalElements() == 0)
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-
-
-        return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
-    }
-
-    @Override
-    public Page<ExpenseResponse> getExpenseByCategoryKey(Pageable pageable, String categoryKey) {
-
-        String uid = getUserInfo().getUid();
-
-        Page<Expense> expenses = expenseRepository.findByUidAndCategoryKey(uid, categoryKey, pageable);
-
-        if (expenses.getTotalElements() == 0)
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-
-        return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
-    }
-
-    @Override
-    public Page<ExpenseResponse> getExpenseByCategoryKeyAndDateRange(Pageable pageable, String categoryKey, Long startDate, Long endDate) {
-
-        String uid = getUserInfo().getUid();
-
-        Page<Expense> expenses = expenseRepository.findByUidAndCategoryKeyAndExpenseDateBetween(uid, categoryKey, startDate, endDate, pageable);
-
-        if (expenses.getTotalElements() == 0)
-            return new PageImpl<>(new ArrayList<>(), pageable, 0);
-
-
-        return new PageImpl<>(convertExpensePageToExpenseResponseList(expenses, uid), pageable, expenses.getTotalElements());
-    }
 
     /**
      * @param categoryKeys      (Required)
@@ -295,25 +264,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseRepository.getTotalExpenseAmountForEachCategoryByUidAndKeys(getUserInfo().getUid(), keys, paymentMethodKeys, dateRange);
     }
 
-    private List<ExpenseResponse> convertExpensePageToExpenseResponseList(Page<Expense> expenses, String uid) {
-
-        if (!expenses.getContent().isEmpty() && !expenses.getContent().get(0).getUid().equals(uid))
-            throw new ExpenseException(ErrorMessageConstants.PERMISSION_DENIED);
-
-        return expenses.getContent().stream().map(e -> {
-
-                    List<PaymentMethod> paymentMethods = new ArrayList<>();
-
-                    if (!e.getPaymentMethodKeys().isEmpty()) {
-                        paymentMethods = paymentMethodRepository.findByUidAndKeyIn(uid, e.getPaymentMethodKeys());
-                    }
-
-                    return ModelMapper.buildExpenseResponse(e, paymentMethods);
-                }
-        ).toList();
-    }
-
-
     @Override
     public void deleteExpense(String key) {
 
@@ -342,4 +292,33 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return userContextService.getUserInfo();
     }
+
+    private List<ExpenseResponse> convertExpensePageToExpenseResponseList(Page<Expense> expenses, String uid) {
+
+        if (!expenses.getContent().isEmpty() && !expenses.getContent().get(0).getUid().equals(uid))
+            throw new ExpenseException(ErrorMessageConstants.PERMISSION_DENIED);
+
+        List<PaymentMethod> userPaymentMethod = paymentMethodRepository.findByUid(uid);
+
+        List<ExpenseResponse> expenseResponses = new ArrayList<>();
+
+        for (Expense expense : expenses.getContent()) {
+
+            List<PaymentMethod> paymentMethods = new ArrayList<>();
+
+            for (String paymentMethodKey : expense.getPaymentMethodKeys()) {
+                for (PaymentMethod userPayment : userPaymentMethod) {
+                    if (userPayment.getKey().equals(paymentMethodKey)) {
+                        paymentMethods.add(userPayment);
+                        break;
+                    }
+                }
+            }
+
+            expenseResponses.add(ModelMapper.buildExpenseResponse(expense, paymentMethods));
+        }
+
+        return expenseResponses;
+    }
+
 }

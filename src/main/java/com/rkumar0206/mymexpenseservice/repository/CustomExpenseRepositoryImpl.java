@@ -4,12 +4,14 @@ import com.rkumar0206.mymexpenseservice.domain.Expense;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.util.Pair;
 
 import java.util.List;
@@ -18,6 +20,40 @@ import java.util.List;
 public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
 
     private final MongoTemplate mongoTemplate;
+
+    @Override
+    public Page<Expense> getExpenseByUid(
+            Pageable pageable,
+            String uid,
+            List<String> categoryKeys,
+            List<String> paymentMethodKeys,
+            Pair<Long, Long> dateRange
+    ) {
+
+        Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
+
+        Criteria criteria = new Criteria().andOperator(
+                Criteria.where("uid").is(uid),
+                dateRangeCriteria.getFirst(),
+                dateRangeCriteria.getSecond(),
+                (categoryKeys != null && !categoryKeys.isEmpty()) ? Criteria.where("categoryKey").in(categoryKeys) : new Criteria(),
+                (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()
+        );
+
+        MatchOperation match = Aggregation.match(criteria);
+        SkipOperation skip = Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize());
+        LimitOperation limit = Aggregation.limit(pageable.getPageSize());
+        SortOperation sort = Aggregation.sort(pageable.getSort().isEmpty() ? Sort.by(Sort.Direction.DESC, "expenseDate") : pageable.getSort());
+
+        Aggregation aggregation = Aggregation.newAggregation(match, skip, limit, sort);
+
+        AggregationResults<Expense> result = mongoTemplate.aggregate(aggregation, Expense.class, Expense.class);
+
+        List<Expense> expenses = result.getMappedResults();
+        long totalCount = mongoTemplate.count(Query.query(criteria), Expense.class);
+
+        return new PageImpl<>(expenses, pageable, totalCount);
+    }
 
     @Override
     public ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {

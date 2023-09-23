@@ -92,81 +92,38 @@ public class ExpenseController {
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
 
-    @GetMapping("/uid")
-    public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getAllExpenseByUid(Pageable pageable, @RequestHeader(Headers.CORRELATION_ID) String correlationId) {
 
-        CustomResponse<Page<ExpenseResponse>> response = new CustomResponse<>();
-
-        try {
-
-            if (maxPageSizeAllowed == 0) maxPageSizeAllowed = 200;
-
-            if (pageable.getPageSize() > maxPageSizeAllowed)
-                throw new ExpenseException(String.format(ErrorMessageConstants.MAX_PAGE_SIZE_ERROR, maxPageSizeAllowed));
-
-            Page<ExpenseResponse> userExpenses = expenseService.getUserExpenses(pageable);
-
-            response.setStatus(HttpStatus.OK.value());
-            response.setBody(userExpenses);
-            response.setMessage(Constants.SUCCESS);
-
-        } catch (Exception ex) {
-
-            setAppropriateResponseStatus(response, ex);
-        }
-
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-    }
-
-    @GetMapping("/categoryKey")
-    public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getAllExpenseByCategoryKey(Pageable pageable, @RequestHeader(Headers.CORRELATION_ID) String correlationId, @RequestParam("categoryKey") String categoryKey) {
-
-        CustomResponse<Page<ExpenseResponse>> response = new CustomResponse<>();
-
-        try {
-
-            if (maxPageSizeAllowed == 0) maxPageSizeAllowed = 200;
-
-            if (!MymUtil.isValid(categoryKey))
-                throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-            if (pageable.getPageSize() > maxPageSizeAllowed)
-                throw new ExpenseException(String.format(ErrorMessageConstants.MAX_PAGE_SIZE_ERROR, maxPageSizeAllowed));
-
-            Page<ExpenseResponse> userExpenses = expenseService.getExpenseByCategoryKey(pageable, categoryKey);
-
-            response.setStatus(HttpStatus.OK.value());
-            response.setBody(userExpenses);
-            response.setMessage(Constants.SUCCESS);
-
-        } catch (Exception ex) {
-
-            setAppropriateResponseStatus(response, ex);
-        }
-
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-    }
-
-
-    @GetMapping("/paymentMethodKeys")
-    public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getByPaymentMethodKeys(
+    @GetMapping()
+    public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getAllExpenseByUid(
             Pageable pageable,
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam List<String> paymentMethodKeys
+            @RequestParam(name = "categoryKeys", required = false) List<String> categoryKeys,
+            @RequestParam(name = "paymentMethodKeys", required = false) List<String> paymentMethodKeys,
+            @RequestParam(name = "date-range", required = false) List<Long> dateRange
     ) {
+
         CustomResponse<Page<ExpenseResponse>> response = new CustomResponse<>();
 
         try {
 
             if (maxPageSizeAllowed == 0) maxPageSizeAllowed = 200;
 
-            if (paymentMethodKeys.isEmpty())
-                throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
             if (pageable.getPageSize() > maxPageSizeAllowed)
                 throw new ExpenseException(String.format(ErrorMessageConstants.MAX_PAGE_SIZE_ERROR, maxPageSizeAllowed));
 
-            Page<ExpenseResponse> userExpenses = expenseService.getUserExpenseByPaymentMethodKey(pageable, paymentMethodKeys);
+            Pair<Long, Long> dateRangePair = null;
+
+            if (dateRange != null) {
+
+                if (dateRange.size() != 2 || dateRange.get(0) == null || dateRange.get(1) == null)
+                    throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
+
+                dateRangePair = Pair.of(dateRange.get(0), dateRange.get(1));
+            }
+
+            Page<ExpenseResponse> userExpenses = expenseService.getUserExpenses(
+                    pageable, categoryKeys, paymentMethodKeys, dateRangePair
+            );
 
             response.setStatus(HttpStatus.OK.value());
             response.setBody(userExpenses);
@@ -178,79 +135,7 @@ public class ExpenseController {
         }
 
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-
     }
-
-    @GetMapping("/date-range")
-    public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getByDateRange(
-            Pageable pageable,
-            @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam("startDate") Long startDate,
-            @RequestParam("endDate") Long endDate
-    ) {
-        CustomResponse<Page<ExpenseResponse>> response = new CustomResponse<>();
-
-        try {
-
-            if (maxPageSizeAllowed == 0) maxPageSizeAllowed = 200;
-
-            if (startDate == null || endDate == null)
-                throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-            if (pageable.getPageSize() > maxPageSizeAllowed)
-                throw new ExpenseException(String.format(ErrorMessageConstants.MAX_PAGE_SIZE_ERROR, maxPageSizeAllowed));
-
-            Page<ExpenseResponse> userExpenses = expenseService.getExpenseBetweenStartDateAndEndDate(pageable, startDate, endDate);
-
-            response.setStatus(HttpStatus.OK.value());
-            response.setBody(userExpenses);
-            response.setMessage(Constants.SUCCESS);
-
-        } catch (Exception ex) {
-
-            setAppropriateResponseStatus(response, ex);
-        }
-
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-
-    }
-
-    @GetMapping("/categoryKey/date-range")
-    public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getByCategoryKeyDateRange(
-            Pageable pageable,
-            @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam("categoryKey") String categoryKey,
-            @RequestParam("startDate") Long startDate,
-            @RequestParam("endDate") Long endDate
-    ) {
-        CustomResponse<Page<ExpenseResponse>> response = new CustomResponse<>();
-
-        try {
-
-            if (maxPageSizeAllowed == 0) maxPageSizeAllowed = 200;
-
-            if (startDate == null || endDate == null || !MymUtil.isValid(categoryKey))
-                throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-            if (pageable.getPageSize() > maxPageSizeAllowed)
-                throw new ExpenseException(String.format(ErrorMessageConstants.MAX_PAGE_SIZE_ERROR, maxPageSizeAllowed));
-
-            Page<ExpenseResponse> userExpenses = expenseService.getExpenseByCategoryKeyAndDateRange(
-                    pageable, categoryKey, startDate, endDate);
-
-            response.setStatus(HttpStatus.OK.value());
-            response.setBody(userExpenses);
-            response.setMessage(Constants.SUCCESS);
-
-        } catch (Exception ex) {
-
-            setAppropriateResponseStatus(response, ex);
-        }
-
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-
-    }
-
 
     @GetMapping("/key")
     public ResponseEntity<CustomResponse<ExpenseResponse>> getExpenseByKey(

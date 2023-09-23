@@ -18,15 +18,14 @@ public interface ExpenseService {
 
     ExpenseResponse getExpenseByKey(String key);
 
-    Page<ExpenseResponse> getUserExpenses(Pageable pageable);
+    //Page<ExpenseResponse> getUserExpenses(Pageable pageable);
 
-    Page<ExpenseResponse> getUserExpenseByPaymentMethodKey(Pageable pageable, List<String> paymentMethodKeys);
-
-    Page<ExpenseResponse> getExpenseBetweenStartDateAndEndDate(Pageable pageable, Long startDate, Long endDate);
-
-    Page<ExpenseResponse> getExpenseByCategoryKey(Pageable pageable, String categoryKey);
-
-    Page<ExpenseResponse> getExpenseByCategoryKeyAndDateRange(Pageable pageable, String categoryKey, Long startDate, Long endDate);
+    Page<ExpenseResponse> getUserExpenses(
+            Pageable pageable,
+            List<String> categoryKeys,
+            List<String> paymentMethodKeys,
+            Pair<Long, Long> dateRange
+    );
 
     ExpenseAmountSum getTotalExpenseByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 

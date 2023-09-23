@@ -12,13 +12,9 @@ public interface ExpenseRepository extends MongoRepository<Expense, String>, Cus
 
     Optional<Expense> findByKey(String key);
 
-    Page<Expense> findByUid(Pageable pageable, String uid);
-
-    Page<Expense> findByUidAndPaymentMethodKeysIn(String uid, List<String> paymentMethodKeys, Pageable pageable);
-
-    Page<Expense> findByUidAndExpenseDateBetween(String uid, Long startDate, Long endDate, Pageable pageable);
-
-    Page<Expense> findByUidAndCategoryKey(String uid, String categoryKey, Pageable pageable);
+    Page<Expense> findByUidAndCategoryKeyInAndPaymentMethodKeysInAndExpenseDateBetween(
+            String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Long startDate, Long endDate, Pageable pageable
+    );
 
     void deleteByUidAndCategoryKey(String uid, String key);
 
