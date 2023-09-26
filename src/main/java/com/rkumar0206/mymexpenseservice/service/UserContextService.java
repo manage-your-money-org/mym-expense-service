@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rkumar0206.mymexpenseservice.constantsAndEnums.Constants;
 import com.rkumar0206.mymexpenseservice.constantsAndEnums.ErrorMessageConstants;
 import com.rkumar0206.mymexpenseservice.models.UserInfo;
+import com.rkumar0206.mymexpenseservice.utility.MymUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +34,20 @@ public class UserContextService {
         }
 
         try {
-            return new ObjectMapper().readValue(tempUserInfo, UserInfo.class);
+            UserInfo userInfo = new ObjectMapper().readValue(tempUserInfo, UserInfo.class);
+
+            if (MymUtil.isNotValid(userInfo.getUid())
+                    || MymUtil.isNotValid(userInfo.getName())
+                    || MymUtil.isNotValid(userInfo.getEmailId())
+                    || !userInfo.isAccountVerified()) {
+
+                throw new RuntimeException(ErrorMessageConstants.USER_INFO_NOT_PROPER);
+            }
+
+            return userInfo;
+
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(ErrorMessageConstants.USER_INFO_NOT_PROVIDED_ERROR);
+            throw new RuntimeException(ErrorMessageConstants.USER_INFO_NOT_PROPER);
         }
     }
 }

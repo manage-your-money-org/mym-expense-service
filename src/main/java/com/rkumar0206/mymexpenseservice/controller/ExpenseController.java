@@ -51,7 +51,7 @@ public class ExpenseController {
 
             } catch (Exception ex) {
 
-                setAppropriateResponseStatus(response, ex);
+                MymUtil.setAppropriateResponseStatus(response, ex);
             }
 
         } else {
@@ -80,7 +80,7 @@ public class ExpenseController {
 
             } catch (Exception ex) {
 
-                setAppropriateResponseStatus(response, ex);
+                MymUtil.setAppropriateResponseStatus(response, ex);
             }
 
         } else {
@@ -131,7 +131,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
 
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
@@ -158,7 +158,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -196,7 +196,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -230,7 +230,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -266,7 +266,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -305,7 +305,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -344,7 +344,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -370,7 +370,7 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
@@ -395,35 +395,10 @@ public class ExpenseController {
 
         } catch (Exception ex) {
 
-            setAppropriateResponseStatus(response, ex);
+            MymUtil.setAppropriateResponseStatus(response, ex);
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
 
-
-    private void setAppropriateResponseStatus(CustomResponse response, Exception ex) {
-
-        if (ex instanceof ExpenseException) {
-
-            if (ex.getMessage().startsWith("Max page size should be less than or equal to")) {
-                response.setStatus(HttpStatus.BAD_REQUEST.value());
-            } else {
-
-                switch (ex.getMessage()) {
-
-                    case ErrorMessageConstants.PERMISSION_DENIED -> response.setStatus(HttpStatus.FORBIDDEN.value());
-                    case ErrorMessageConstants.REQUEST_BODY_NOT_VALID, ErrorMessageConstants.REQUEST_PARAM_NOT_VALID ->
-                            response.setStatus(HttpStatus.BAD_REQUEST.value());
-                    case ErrorMessageConstants.NO_EXPENSE_FOUND_ERROR ->
-                            response.setStatus(HttpStatus.NO_CONTENT.value());
-                }
-            }
-
-        } else {
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        }
-
-        response.setMessage(String.format(Constants.FAILED_, ex.getMessage()));
-    }
 
 }

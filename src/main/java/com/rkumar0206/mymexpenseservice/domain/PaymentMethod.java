@@ -8,7 +8,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Document(collection = "PaymentMethod")
@@ -27,4 +26,10 @@ public class PaymentMethod {
     private Date created;
     private Date modified;
     private String paymentMethodName;
+
+    public void updateFields(String paymentMethodName) {
+
+        this.setPaymentMethodName(paymentMethodName.trim());
+        this.setModified(new Date(System.currentTimeMillis()));
+    }
 }
