@@ -55,13 +55,30 @@ public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
         return new PageImpl<>(expenses, pageable, totalCount);
     }
 
+//    @Override
+//    public ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+//
+//        Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
+//
+//        Criteria criteria = new Criteria().andOperator(
+//                Criteria.where("uid").is(uid),
+//                dateRangeCriteria.getFirst(),
+//                dateRangeCriteria.getSecond(),
+//                (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()
+//        );
+//
+//        return getTotalExpenseAmountByMatchingCriteria(criteria);
+//    }
+
+
     @Override
-    public ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+    public ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
 
         Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
 
         Criteria criteria = new Criteria().andOperator(
                 Criteria.where("uid").is(uid),
+                (categoryKeys != null && !categoryKeys.isEmpty()) ? Criteria.where("categoryKey").in(categoryKeys) : new Criteria(),
                 dateRangeCriteria.getFirst(),
                 dateRangeCriteria.getSecond(),
                 (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()
@@ -72,28 +89,13 @@ public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
 
 
     @Override
-    public ExpenseAmountSum getTotalExpenseByUidAndCategoryKeys(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUid(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
 
         Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
 
         Criteria criteria = new Criteria().andOperator(
                 Criteria.where("uid").is(uid),
-                Criteria.where("categoryKey").in(categoryKeys),
-                dateRangeCriteria.getFirst(),
-                dateRangeCriteria.getSecond(),
-                (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()
-        );
-
-        return getTotalExpenseAmountByMatchingCriteria(criteria);
-    }
-
-    @Override
-    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
-
-        Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
-
-        Criteria criteria = new Criteria().andOperator(
-                Criteria.where("uid").is(uid),
+                (categoryKeys != null && !categoryKeys.isEmpty()) ? Criteria.where("categoryKey").in(categoryKeys) : new Criteria(),
                 dateRangeCriteria.getFirst(),
                 dateRangeCriteria.getSecond(),
                 (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()
@@ -101,6 +103,7 @@ public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
 
         return getTotalExpenseAmountForEachCategoryByMatchingCriteria(criteria);
     }
+
 
     @Override
     public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUidAndKeys(String uid, List<String> keys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
@@ -110,22 +113,6 @@ public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
         Criteria criteria = new Criteria().andOperator(
                 Criteria.where("uid").is(uid),
                 Criteria.where("key").in(keys),
-                dateRangeCriteria.getFirst(),
-                dateRangeCriteria.getSecond(),
-                (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()
-        );
-
-        return getTotalExpenseAmountForEachCategoryByMatchingCriteria(criteria);
-    }
-
-    @Override
-    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUidAndCategoryKeys(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
-
-        Pair<Criteria, Criteria> dateRangeCriteria = createDateRangeCriteria(dateRange);
-
-        Criteria criteria = new Criteria().andOperator(
-                Criteria.where("uid").is(uid),
-                Criteria.where("categoryKey").in(categoryKeys),
                 dateRangeCriteria.getFirst(),
                 dateRangeCriteria.getSecond(),
                 (paymentMethodKeys != null && !paymentMethodKeys.isEmpty()) ? Criteria.where("paymentMethodKeys").in(paymentMethodKeys) : new Criteria()

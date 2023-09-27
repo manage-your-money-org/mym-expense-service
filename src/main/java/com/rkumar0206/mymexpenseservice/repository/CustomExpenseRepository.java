@@ -13,13 +13,10 @@ public interface CustomExpenseRepository {
 
     Page<Expense> getExpenseByUid(Pageable pageable, String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 
-    ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+    ExpenseAmountSum getTotalExpenseAmountByUid(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 
-    ExpenseAmountSum getTotalExpenseByUidAndCategoryKeys(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
-
-    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUid(String uid, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUid(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 
     List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUidAndKeys(String uid, List<String> keys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 
-    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByUidAndCategoryKeys(String uid, List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 }

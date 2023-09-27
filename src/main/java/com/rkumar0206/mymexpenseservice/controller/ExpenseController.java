@@ -8,6 +8,7 @@ import com.rkumar0206.mymexpenseservice.exception.ExpenseException;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
+import com.rkumar0206.mymexpenseservice.models.request.FilterRequest;
 import com.rkumar0206.mymexpenseservice.models.response.CustomResponse;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.service.ExpenseService;
@@ -97,9 +98,7 @@ public class ExpenseController {
     public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getAllExpenseByUid(
             Pageable pageable,
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam(name = "categoryKeys", required = false) List<String> categoryKeys,
-            @RequestParam(name = "paymentMethodKeys", required = false) List<String> paymentMethodKeys,
-            @RequestParam(name = "date-range", required = false) List<Long> dateRange
+            @RequestBody(required = false) FilterRequest filterRequest
     ) {
 
         CustomResponse<Page<ExpenseResponse>> response = new CustomResponse<>();
@@ -111,19 +110,7 @@ public class ExpenseController {
             if (pageable.getPageSize() > maxPageSizeAllowed)
                 throw new ExpenseException(String.format(ErrorMessageConstants.MAX_PAGE_SIZE_ERROR, maxPageSizeAllowed));
 
-            Pair<Long, Long> dateRangePair = null;
-
-            if (dateRange != null) {
-
-                if (dateRange.size() != 2 || dateRange.get(0) == null || dateRange.get(1) == null)
-                    throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-                dateRangePair = Pair.of(dateRange.get(0), dateRange.get(1));
-            }
-
-            Page<ExpenseResponse> userExpenses = expenseService.getUserExpenses(
-                    pageable, categoryKeys, paymentMethodKeys, dateRangePair
-            );
+            Page<ExpenseResponse> userExpenses = expenseService.getUserExpenses(pageable, filterRequest);
 
             response.setStatus(HttpStatus.OK.value());
             response.setBody(userExpenses);
@@ -163,66 +150,17 @@ public class ExpenseController {
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
 
-    @GetMapping("/amount/sum/categoryKeys")
-    public ResponseEntity<CustomResponse<ExpenseAmountSum>> getExpenseAmountSumByCategoryKeys(
-            @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam("categoryKeys") List<String> categoryKeys,
-            @RequestParam(name = "paymentMethodKeys", required = false) List<String> paymentMethodKeys,
-            @RequestParam(name = "date-range", required = false) List<Long> dateRange
-    ) {
-
-        CustomResponse<ExpenseAmountSum> response = new CustomResponse<>();
-
-        try {
-
-            if (categoryKeys == null || categoryKeys.isEmpty())
-                throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-            Pair<Long, Long> dateRangePair = null;
-
-            if (dateRange != null) {
-
-                if (dateRange.size() != 2 || dateRange.get(0) == null || dateRange.get(1) == null)
-                    throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-                dateRangePair = Pair.of(dateRange.get(0), dateRange.get(1));
-            }
-
-            ExpenseAmountSum sum = expenseService.getTotalExpenseByCategoryKeys(categoryKeys, paymentMethodKeys, dateRangePair);
-
-            response.setStatus(HttpStatus.OK.value());
-            response.setMessage(Constants.SUCCESS);
-            response.setBody(sum == null ? new ExpenseAmountSum(0.0) : sum);
-
-        } catch (Exception ex) {
-
-            MymUtil.setAppropriateResponseStatus(response, ex);
-        }
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-    }
-
     @GetMapping("/amount/sum")
     public ResponseEntity<CustomResponse<ExpenseAmountSum>> getExpenseAmountSum(
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam(name = "paymentMethodKeys", required = false) List<String> paymentMethodKeys,
-            @RequestParam(name = "date-range", required = false) List<Long> dateRange
+            @RequestBody(required = false) FilterRequest filter
     ) {
 
         CustomResponse<ExpenseAmountSum> response = new CustomResponse<>();
 
         try {
 
-            Pair<Long, Long> dateRangePair = null;
-
-            if (dateRange != null) {
-
-                if (dateRange.size() != 2 || dateRange.get(0) == null || dateRange.get(1) == null)
-                    throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-                dateRangePair = Pair.of(dateRange.get(0), dateRange.get(1));
-            }
-
-            ExpenseAmountSum sum = expenseService.getTotalExpenseAmount(paymentMethodKeys, dateRangePair);
+            ExpenseAmountSum sum = expenseService.getTotalExpenseAmount(filter);
 
             response.setStatus(HttpStatus.OK.value());
             response.setMessage(Constants.SUCCESS);
@@ -234,70 +172,18 @@ public class ExpenseController {
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
-
 
     @GetMapping("/amount/sum/all/category")
     public ResponseEntity<CustomResponse<List<ExpenseAmountSumAndCategoryKey>>> getExpenseAmountForEachCategory(
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam(name = "paymentMethodKeys", required = false) List<String> paymentMethodKeys,
-            @RequestParam(name = "date-range", required = false) List<Long> dateRange
-
+            @RequestBody(required = false) FilterRequest filterRequest
     ) {
 
         CustomResponse<List<ExpenseAmountSumAndCategoryKey>> response = new CustomResponse<>();
 
         try {
 
-            Pair<Long, Long> dateRangePair = null;
-
-            if (dateRange != null) {
-
-                if (dateRange.size() != 2 || dateRange.get(0) == null || dateRange.get(1) == null)
-                    throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-                dateRangePair = Pair.of(dateRange.get(0), dateRange.get(1));
-            }
-
-            List<ExpenseAmountSumAndCategoryKey> sum = expenseService.getTotalExpenseAmountForEachCategory(paymentMethodKeys, dateRangePair);
-
-            response.setStatus(HttpStatus.OK.value());
-            response.setMessage(Constants.SUCCESS);
-            response.setBody(sum);
-
-        } catch (Exception ex) {
-
-            MymUtil.setAppropriateResponseStatus(response, ex);
-        }
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
-    }
-
-    @GetMapping("/amount/sum/all/category/categoryKeys")
-    public ResponseEntity<CustomResponse<List<ExpenseAmountSumAndCategoryKey>>> getExpenseAmountForEachCategoryByCategoryKeys(
-            @RequestHeader(Headers.CORRELATION_ID) String correlationId,
-            @RequestParam("categoryKeys") List<String> categoryKeys,
-            @RequestParam(name = "paymentMethodKeys", required = false) List<String> paymentMethodKeys,
-            @RequestParam(name = "date-range", required = false) List<Long> dateRange
-    ) {
-
-        CustomResponse<List<ExpenseAmountSumAndCategoryKey>> response = new CustomResponse<>();
-
-        try {
-
-            if (categoryKeys == null || categoryKeys.isEmpty())
-                throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-            Pair<Long, Long> dateRangePair = null;
-
-            if (dateRange != null) {
-
-                if (dateRange.size() != 2 || dateRange.get(0) == null || dateRange.get(1) == null)
-                    throw new ExpenseException(ErrorMessageConstants.REQUEST_PARAM_NOT_VALID);
-
-                dateRangePair = Pair.of(dateRange.get(0), dateRange.get(1));
-            }
-
-            List<ExpenseAmountSumAndCategoryKey> sum = expenseService
-                    .getTotalExpenseAmountForEachCategoryByCategoryKeys(categoryKeys, paymentMethodKeys, dateRangePair);
+            List<ExpenseAmountSumAndCategoryKey> sum = expenseService.getTotalExpenseAmountForEachCategory(filterRequest);
 
             response.setStatus(HttpStatus.OK.value());
             response.setMessage(Constants.SUCCESS);

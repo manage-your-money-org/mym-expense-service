@@ -8,6 +8,7 @@ import com.rkumar0206.mymexpenseservice.models.UserInfo;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
+import com.rkumar0206.mymexpenseservice.models.request.FilterRequest;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.repository.ExpenseRepository;
 import com.rkumar0206.mymexpenseservice.repository.PaymentMethodRepository;
@@ -494,9 +495,13 @@ class ExpenseServiceImplTest {
         tempPaymentMethod.setKey(tempPaymentMethodKey);
         when(paymentMethodRepository.findByUid(anyString())).thenReturn(List.of(tempPaymentMethod));
 
-        Page<ExpenseResponse> actual = expenseService.getUserExpenses(
-                pageable, List.of(tempCategoryKey), List.of(tempPaymentMethodKey), Pair.of(0L, 2487687L)
-        );
+        FilterRequest filterRequest = FilterRequest.builder()
+                .categoryKeys(List.of(tempCategoryKey))
+                .paymentMethodKeys(List.of(tempPaymentMethodKey))
+                .dateRange(Pair.of(0L, 2487687L))
+                .build();
+
+        Page<ExpenseResponse> actual = expenseService.getUserExpenses(pageable, filterRequest);
 
         assertEquals(expensePage.getTotalElements(), actual.getTotalElements());
         assertEquals(expensePage.getContent().get(0).getAmount(), actual.getContent().get(0).getAmount());
@@ -515,8 +520,14 @@ class ExpenseServiceImplTest {
                 expensePage
         );
 
+        FilterRequest filterRequest = FilterRequest.builder()
+                .paymentMethodKeys(List.of(tempPaymentMethodKey))
+                .dateRange(Pair.of(0L, 929297696L))
+                .build();
+
+
         Page<ExpenseResponse> actual = expenseService.getUserExpenses(
-                pageable, null, List.of(tempPaymentMethodKey), Pair.of(0L, 929297696L)
+                pageable, filterRequest
         );
 
         assertEquals(expensePage.getTotalElements(), actual.getTotalElements());
@@ -537,14 +548,14 @@ class ExpenseServiceImplTest {
         );
 
         Page<ExpenseResponse> actual = expenseService.getUserExpenses(
-                pageable, null, null, null
+                pageable, new FilterRequest()
         );
 
         assertEquals(0, actual.getTotalElements());
     }
 
     @Test
-    void getUserExpenses_AllFilterIsNull_ExepnseWithDifferentUid_ExceptionThrown() {
+    void getUserExpenses_AllFilterIsNull_ExpenseWithDifferentUid_ExceptionThrown() {
 
         tempExpense.setUid("dshhjbkbhsb");
         Page<Expense> expensePage = new PageImpl<>(
@@ -558,7 +569,7 @@ class ExpenseServiceImplTest {
         );
 
         assertThatThrownBy(() -> expenseService.getUserExpenses(
-                pageable, null, null, null
+                pageable, new FilterRequest()
         ))
                 .isInstanceOf(ExpenseException.class)
                 .hasMessage(ErrorMessageConstants.PERMISSION_DENIED);
@@ -566,38 +577,22 @@ class ExpenseServiceImplTest {
 
 
     @Test
-    void getTotalExpenseByCategoryKeys_Success() {
-
-        ExpenseAmountSum expected = new ExpenseAmountSum(501726.0);
-
-        when(expenseRepository.getTotalExpenseByUidAndCategoryKeys(
-                tempUserInfo.getUid(), List.of(tempCategoryKey), null, null
-        )).thenReturn(expected);
-
-        ExpenseAmountSum actual = expenseService.getTotalExpenseByCategoryKeys(
-                List.of(tempCategoryKey), null, null
-        );
-
-        assertEquals(expected.getTotalExpenseAmount(), actual.getTotalExpenseAmount());
-
-    }
-
-    @Test
     void getTotalExpenseAmount_Success() {
 
         ExpenseAmountSum expected = new ExpenseAmountSum(501726.0);
 
         when(expenseRepository.getTotalExpenseAmountByUid(
-                tempUserInfo.getUid(), null, null
+                tempUserInfo.getUid(), List.of(tempCategoryKey), null, null
         )).thenReturn(expected);
 
         ExpenseAmountSum actual = expenseService.getTotalExpenseAmount(
-                null, null
+                new FilterRequest(List.of(tempCategoryKey), null, null)
         );
 
         assertEquals(expected.getTotalExpenseAmount(), actual.getTotalExpenseAmount());
 
     }
+
 
     @Test
     void getTotalExpenseAmountForEachCategory_Success() {
@@ -606,34 +601,17 @@ class ExpenseServiceImplTest {
                 new ExpenseAmountSumAndCategoryKey(6666.0, tempCategoryKey);
 
         when(expenseRepository.getTotalExpenseAmountForEachCategoryByUid(
-                tempUserInfo.getUid(), null, null
+                tempUserInfo.getUid(), null, null, null
         )).thenReturn(List.of(expected));
 
         List<ExpenseAmountSumAndCategoryKey> actual = expenseService.getTotalExpenseAmountForEachCategory(
-                null, null
+                new FilterRequest()
         );
 
         assertEquals(expected.getTotalExpenseAmount(), actual.get(0).getTotalExpenseAmount());
 
     }
 
-    @Test
-    void getTotalExpenseAmountForEachCategoryByCategoryKeys_Success() {
-
-        ExpenseAmountSumAndCategoryKey expected =
-                new ExpenseAmountSumAndCategoryKey(6666.0, tempCategoryKey);
-
-        when(expenseRepository.getTotalExpenseAmountForEachCategoryByUidAndCategoryKeys(
-                tempUserInfo.getUid(), List.of(tempCategoryKey), null, null
-        )).thenReturn(List.of(expected));
-
-        List<ExpenseAmountSumAndCategoryKey> actual = expenseService.getTotalExpenseAmountForEachCategoryByCategoryKeys(
-                List.of(tempCategoryKey), null, null
-        );
-
-        assertEquals(expected.getTotalExpenseAmount(), actual.get(0).getTotalExpenseAmount());
-
-    }
 
     @Test
     void getTotalExpenseAmountForEachCategoryByKeys_Success() {

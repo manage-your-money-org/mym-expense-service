@@ -3,6 +3,7 @@ package com.rkumar0206.mymexpenseservice.service;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
+import com.rkumar0206.mymexpenseservice.models.request.FilterRequest;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,18 +23,12 @@ public interface ExpenseService {
 
     Page<ExpenseResponse> getUserExpenses(
             Pageable pageable,
-            List<String> categoryKeys,
-            List<String> paymentMethodKeys,
-            Pair<Long, Long> dateRange
+            FilterRequest filterRequest
     );
 
-    ExpenseAmountSum getTotalExpenseByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+    ExpenseAmountSum getTotalExpenseAmount(FilterRequest filterRequest);
 
-    ExpenseAmountSum getTotalExpenseAmount(List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
-
-    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
-
-    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
+    List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(FilterRequest filterRequest);
 
     List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByKeys(List<String> keys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange);
 

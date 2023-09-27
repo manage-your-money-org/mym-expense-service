@@ -26,7 +26,10 @@ public class PaymentMethodController {
     private final PaymentMethodService paymentMethodService;
 
     @PostMapping("/create")
-    public ResponseEntity<CustomResponse<PaymentMethod>> createNewPaymentMethod(@RequestBody PaymentMethodRequest request) {
+    public ResponseEntity<CustomResponse<PaymentMethod>> createNewPaymentMethod(
+            @RequestHeader(Headers.CORRELATION_ID) String correlationId,
+            @RequestBody PaymentMethodRequest request
+    ) {
 
         CustomResponse<PaymentMethod> response = new CustomResponse<>();
 

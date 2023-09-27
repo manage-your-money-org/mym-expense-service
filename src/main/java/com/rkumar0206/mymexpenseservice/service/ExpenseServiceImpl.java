@@ -8,6 +8,7 @@ import com.rkumar0206.mymexpenseservice.models.UserInfo;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
+import com.rkumar0206.mymexpenseservice.models.request.FilterRequest;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.repository.ExpenseRepository;
 import com.rkumar0206.mymexpenseservice.repository.PaymentMethodRepository;
@@ -171,27 +172,25 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public Page<ExpenseResponse> getUserExpenses(
             Pageable pageable,
-            List<String> categoryKeys,
-            List<String> paymentMethodKeys,
-            Pair<Long, Long> dateRange
+            FilterRequest filterRequest
     ) {
 
         String uid = getUserInfo().getUid();
 
         Page<Expense> expenses;
 
-        if (categoryKeys != null && paymentMethodKeys != null && dateRange != null) {
+        if (filterRequest.getCategoryKeys() != null && filterRequest.getPaymentMethodKeys() != null && filterRequest.getDateRange() != null) {
 
             // query made by mongo-db
             expenses = expenseRepository.findByUidAndCategoryKeyInAndPaymentMethodKeysInAndExpenseDateBetween(
-                    uid, categoryKeys, paymentMethodKeys, dateRange.getFirst(), dateRange.getSecond(), pageable
+                    uid, filterRequest.getCategoryKeys(), filterRequest.getPaymentMethodKeys(), filterRequest.getDateRange().getFirst(), filterRequest.getDateRange().getSecond(), pageable
             );
 
         } else {
 
             // custom query
             expenses = expenseRepository.getExpenseByUid(
-                    pageable, uid, categoryKeys, paymentMethodKeys, dateRange
+                    pageable, uid, filterRequest.getCategoryKeys(), filterRequest.getPaymentMethodKeys(), filterRequest.getDateRange()
             );
         }
 
@@ -204,52 +203,34 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
 
-    /**
-     * @param categoryKeys      (Required)
-     * @param paymentMethodKeys (Optional)
-     * @param dateRange         (Optional)
-     * @return sum of expense amount by given list of categories
-     */
+    //    /**
+//     * @param categoryKeys      (Required)
+//     * @param paymentMethodKeys (Optional)
+//     * @param dateRange         (Optional)
+//     * @return sum of expense amount by given list of categories
+//     */
     @Override
-    public ExpenseAmountSum getTotalExpenseByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+    public ExpenseAmountSum getTotalExpenseAmount(FilterRequest filterRequest) {
 
-        return expenseRepository.getTotalExpenseByUidAndCategoryKeys(
-                getUserInfo().getUid(), categoryKeys, paymentMethodKeys, dateRange
+        FilterRequest filter = filterRequest == null ? new FilterRequest() : filterRequest;
+
+        return expenseRepository.getTotalExpenseAmountByUid(
+                getUserInfo().getUid(), filter.getCategoryKeys(), filter.getPaymentMethodKeys(), filter.getDateRange()
         );
     }
 
-    /**
-     * @param paymentMethodKeys (Optional)
-     * @param dateRange         (Optional)
-     * @return sum of expense amount of a user
-     */
+
+    //    /**
+//     * @param paymentMethodKeys (Optional)
+//     * @param dateRange         (Optional)
+//     * @return sum of expense of each category of a user
+//     */
     @Override
-    public ExpenseAmountSum getTotalExpenseAmount(List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
+    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(FilterRequest filterRequest) {
 
-        return expenseRepository.getTotalExpenseAmountByUid(getUserInfo().getUid(), paymentMethodKeys, dateRange);
-    }
+        FilterRequest filter = filterRequest == null ? new FilterRequest() : filterRequest;
 
-
-    /**
-     * @param paymentMethodKeys (Optional)
-     * @param dateRange         (Optional)
-     * @return sum of expense of each category of a user
-     */
-    @Override
-    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
-
-        return expenseRepository.getTotalExpenseAmountForEachCategoryByUid(getUserInfo().getUid(), paymentMethodKeys, dateRange);
-    }
-
-    /**
-     * @param categoryKeys      (Required)
-     * @param paymentMethodKeys (Optional)
-     * @param dateRange         (Optional)
-     * @return sum of expense of given categories
-     */
-    @Override
-    public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategoryByCategoryKeys(List<String> categoryKeys, List<String> paymentMethodKeys, Pair<Long, Long> dateRange) {
-        return expenseRepository.getTotalExpenseAmountForEachCategoryByUidAndCategoryKeys(getUserInfo().getUid(), categoryKeys, paymentMethodKeys, dateRange);
+        return expenseRepository.getTotalExpenseAmountForEachCategoryByUid(getUserInfo().getUid(), filter.getCategoryKeys(), filter.getPaymentMethodKeys(), filter.getDateRange());
     }
 
     /**
