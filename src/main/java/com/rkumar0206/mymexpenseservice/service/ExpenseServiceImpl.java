@@ -203,12 +203,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
 
-    //    /**
-//     * @param categoryKeys      (Required)
-//     * @param paymentMethodKeys (Optional)
-//     * @param dateRange         (Optional)
-//     * @return sum of expense amount by given list of categories
-//     */
+    /**
+     * @param filterRequest (Optional)
+     * @return sum of expense amount by given list of categories
+     */
     @Override
     public ExpenseAmountSum getTotalExpenseAmount(FilterRequest filterRequest) {
 
@@ -220,11 +218,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
 
-    //    /**
-//     * @param paymentMethodKeys (Optional)
-//     * @param dateRange         (Optional)
-//     * @return sum of expense of each category of a user
-//     */
+    /**
+     * @param filterRequest (Optional)
+     * @return sum of expense of each category of a user
+     */
     @Override
     public List<ExpenseAmountSumAndCategoryKey> getTotalExpenseAmountForEachCategory(FilterRequest filterRequest) {
 
