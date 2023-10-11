@@ -1,9 +1,9 @@
 package com.rkumar0206.mymexpenseservice.models.response;
 
 import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
+import com.rkumar0206.mymexpenseservice.models.FeignClientResponses.ExpenseCategory;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -21,6 +21,6 @@ public class ExpenseResponse {
     private String uid;
     private String key;
     private Long expenseDate;
-    private String categoryKey;
+    private ExpenseCategory category;
     private List<PaymentMethod> paymentMethods;
 }

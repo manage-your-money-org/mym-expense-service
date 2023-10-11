@@ -12,4 +12,5 @@ public class ErrorMessageConstants {
     public static final String NO_PAYMENT_METHOD_FOUND_ERROR = "No payment method found";
     public static final String PAYMENT_METHOD_WITH_THIS_NAME_ALREADY_PRESENT = "Payment method with this name already present";
     public static final String USER_INFO_NOT_PROPER = "User information provided is not proper";
+    public static final String NO_CORRELATION_ID_PASSED = "Header " + Headers.CORRELATION_ID + " no passed.";
 }

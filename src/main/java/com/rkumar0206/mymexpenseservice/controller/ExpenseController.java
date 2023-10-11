@@ -13,6 +13,7 @@ import com.rkumar0206.mymexpenseservice.models.response.CustomResponse;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.service.ExpenseService;
 import com.rkumar0206.mymexpenseservice.utility.MymUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/mym/api/expenses")
+@Slf4j
 public class ExpenseController {
 
     @Value("${pagination.maxPageSizeAllowed}")
@@ -53,6 +55,10 @@ public class ExpenseController {
             } catch (Exception ex) {
 
                 MymUtil.setAppropriateResponseStatus(response, ex);
+                log.error(MymUtil.createLog(
+                        correlationId,
+                        "Exception occurred while creating expense: " + ex.getMessage()
+                ));
             }
 
         } else {

@@ -2,8 +2,8 @@ package com.rkumar0206.mymexpenseservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rkumar0206.mymexpenseservice.constantsAndEnums.Constants;
 import com.rkumar0206.mymexpenseservice.constantsAndEnums.ErrorMessageConstants;
+import com.rkumar0206.mymexpenseservice.constantsAndEnums.Headers;
 import com.rkumar0206.mymexpenseservice.models.UserInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +61,7 @@ class UserContextServiceTest {
                 true
         );
 
-        when(httpServletRequest.getHeader(Constants.USER_INFO_HEADER_NAME))
+        when(httpServletRequest.getHeader(Headers.USER_INFO_HEADER_NAME))
                 .thenReturn(new ObjectMapper().writeValueAsString(userInfo));
 
 
@@ -76,7 +76,7 @@ class UserContextServiceTest {
     @Test
     void getUserInfo_NoUserInfoHeaderPassed_ExceptionThrown() {
 
-        when(httpServletRequest.getHeader(Constants.USER_INFO_HEADER_NAME))
+        when(httpServletRequest.getHeader(Headers.USER_INFO_HEADER_NAME))
                 .thenReturn(null);
 
         assertThatThrownBy(() -> userContextService.getUserInfo())
@@ -95,7 +95,7 @@ class UserContextServiceTest {
                 true
         );
 
-        when(httpServletRequest.getHeader(Constants.USER_INFO_HEADER_NAME))
+        when(httpServletRequest.getHeader(Headers.USER_INFO_HEADER_NAME))
                 .thenReturn(new ObjectMapper().writeValueAsString(userInfo));
 
         assertThatThrownBy(() -> userContextService.getUserInfo())
@@ -108,7 +108,7 @@ class UserContextServiceTest {
     @Test
     void getUserInfo_JsonParsingExceptionOccurred_ExceptionThrown() {
 
-        when(httpServletRequest.getHeader(Constants.USER_INFO_HEADER_NAME))
+        when(httpServletRequest.getHeader(Headers.USER_INFO_HEADER_NAME))
                 .thenReturn("jssbhbsjhb");
 
         assertThatThrownBy(() -> userContextService.getUserInfo())

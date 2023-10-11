@@ -1,17 +1,11 @@
 package com.rkumar0206.mymexpenseservice;
 
-import com.rkumar0206.mymexpenseservice.domain.Expense;
-import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
-import com.rkumar0206.mymexpenseservice.repository.ExpenseRepository;
-import com.rkumar0206.mymexpenseservice.repository.PaymentMethodRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-
-import java.util.*;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
+@EnableFeignClients
 public class MymExpenseServiceApplication {
 
     public static void main(String[] args) {
