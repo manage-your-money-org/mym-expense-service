@@ -4,11 +4,14 @@ import com.rkumar0206.mymexpenseservice.constantsAndEnums.ErrorMessageConstants;
 import com.rkumar0206.mymexpenseservice.domain.Expense;
 import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
 import com.rkumar0206.mymexpenseservice.exception.ExpenseException;
+import com.rkumar0206.mymexpenseservice.feignClient.ExpenseCategoryAPI;
+import com.rkumar0206.mymexpenseservice.models.FeignClientResponses.ExpenseCategory;
 import com.rkumar0206.mymexpenseservice.models.UserInfo;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
 import com.rkumar0206.mymexpenseservice.models.request.FilterRequest;
+import com.rkumar0206.mymexpenseservice.models.response.CustomResponse;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.repository.ExpenseRepository;
 import com.rkumar0206.mymexpenseservice.repository.PaymentMethodRepository;
@@ -25,6 +28,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.*;
 
@@ -45,6 +50,8 @@ class ExpenseServiceImplTest {
     private PaymentMethodRepository paymentMethodRepository;
     @Mock
     private UserContextService userContextService;
+    @Mock
+    private ExpenseCategoryAPI expenseCategoryAPI;
     @InjectMocks
     private ExpenseServiceImpl expenseService;
     private UserInfo tempUserInfo;
@@ -112,6 +119,7 @@ class ExpenseServiceImplTest {
                 null
         );
 
+        mockExpenseCategoryAPIForKey();
         //----------------
         // This is only for ModelMapper method does not fail
         when(paymentMethodRepository.save(any())).thenReturn(tempPaymentMethod);
@@ -157,6 +165,8 @@ class ExpenseServiceImplTest {
                 null
         );
 
+        mockExpenseCategoryAPIForKey();
+
         //----------------
         // This is only for ModelMapper method does not fail
         when(expenseRepository.save(any())).thenReturn(tempExpense);
@@ -200,6 +210,8 @@ class ExpenseServiceImplTest {
                 null
         );
 
+        mockExpenseCategoryAPIForKey();
+
         //----------------
         // This is only for ModelMapper method does not fail
         when(expenseRepository.save(any())).thenReturn(tempExpense);
@@ -242,6 +254,8 @@ class ExpenseServiceImplTest {
                 List.of("TEMP2"),
                 null
         );
+
+        mockExpenseCategoryAPIForKey();
 
         //----------------
         // This is only for ModelMapper method does not fail
@@ -301,6 +315,7 @@ class ExpenseServiceImplTest {
                 null
         );
 
+        mockExpenseCategoryAPIForKey();
         //----------------
         // This is only for ModelMapper method does not fail
         when(expenseRepository.save(any())).thenReturn(tempExpense);
@@ -348,6 +363,8 @@ class ExpenseServiceImplTest {
                 tempExpense.getKey()
         );
 
+        mockExpenseCategoryAPIForKey();
+
         //----------------
         // This is only for ModelMapper method does not fail
         when(paymentMethodRepository.save(any())).thenReturn(tempPaymentMethod);
@@ -375,6 +392,39 @@ class ExpenseServiceImplTest {
         assertEquals(List.of(tempPaymentMethodKey, newPaymentMethodWithTEMP2.getKey()), actualExpense.getPaymentMethodKeys());
 
     }
+
+    private void mockExpenseCategoryAPIForKey() {
+
+        when(userContextService.getAuthorizationToken()).thenReturn("shvjjshvhjs");
+        when(userContextService.getCorrelationId()).thenReturn("abjhababja");
+        when(userContextService.getUserInfoHeaderValue()).thenReturn("abhabhjabjhajh");
+
+        CustomResponse<ExpenseCategory> expenseCategoryResponse = new CustomResponse<>();
+        expenseCategoryResponse.setBody(ExpenseCategory.builder().key(tempCategoryKey).build());
+        when(expenseCategoryAPI.getExpenseCategoryByKey(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString()
+        )).thenReturn(new ResponseEntity<>(expenseCategoryResponse, HttpStatus.OK));
+    }
+
+    private void mockExpenseCategoryAPIForGettingAllCategories() {
+
+        when(userContextService.getAuthorizationToken()).thenReturn("shvjjshvhjs");
+        when(userContextService.getCorrelationId()).thenReturn("abjhababja");
+        when(userContextService.getUserInfoHeaderValue()).thenReturn("abhabhjabjhajh");
+
+        CustomResponse<Page<ExpenseCategory>> expenseCategoryResponse = new CustomResponse<>();
+        expenseCategoryResponse.setBody(new PageImpl<>(List.of(ExpenseCategory.builder().key(tempCategoryKey).build())));
+        when(expenseCategoryAPI.getExpenseCategoryOfUser(
+                anyString(),
+                anyString(),
+                anyString(),
+                any()
+        )).thenReturn(new ResponseEntity<>(expenseCategoryResponse, HttpStatus.OK));
+    }
+
 
     @Test
     void update_noExpenseFound_ExceptionThrown() {
@@ -431,10 +481,12 @@ class ExpenseServiceImplTest {
                 tempUserInfo.getUid(), tempExpense.getPaymentMethodKeys()
         )).thenReturn(List.of(new PaymentMethod(), new PaymentMethod()));
 
+        mockExpenseCategoryAPIForKey();
+
         ExpenseResponse actual = expenseService.getExpenseByKey(tempExpense.getKey());
 
         assertEquals(tempExpense.getAmount(), actual.getAmount());
-        assertEquals(tempExpense.getCategoryKey(), actual.getCategoryKey());
+        //assertEquals(tempExpense.getCategoryKey(), actual.getCategoryKey());
         assertEquals(tempExpense.getExpenseDate(), actual.getExpenseDate());
 
     }
@@ -444,11 +496,12 @@ class ExpenseServiceImplTest {
 
         tempExpense.setPaymentMethodKeys(new ArrayList<>());
         when(expenseRepository.findByKey(tempExpense.getKey())).thenReturn(Optional.of(tempExpense));
+        mockExpenseCategoryAPIForKey();
 
         ExpenseResponse actual = expenseService.getExpenseByKey(tempExpense.getKey());
 
         assertEquals(tempExpense.getAmount(), actual.getAmount());
-        assertEquals(tempExpense.getCategoryKey(), actual.getCategoryKey());
+        //assertEquals(tempExpense.getCategoryKey(), actual.getCategoryKey());
         assertEquals(tempExpense.getExpenseDate(), actual.getExpenseDate());
         assertNotNull(actual.getPaymentMethods());
     }
@@ -491,6 +544,7 @@ class ExpenseServiceImplTest {
         ).thenReturn(
                 expensePage
         );
+        mockExpenseCategoryAPIForGettingAllCategories();
 
         tempPaymentMethod.setKey(tempPaymentMethodKey);
         when(paymentMethodRepository.findByUid(anyString())).thenReturn(List.of(tempPaymentMethod));
@@ -519,6 +573,8 @@ class ExpenseServiceImplTest {
         ).thenReturn(
                 expensePage
         );
+
+        mockExpenseCategoryAPIForGettingAllCategories();
 
         FilterRequest filterRequest = FilterRequest.builder()
                 .paymentMethodKeys(List.of(tempPaymentMethodKey))

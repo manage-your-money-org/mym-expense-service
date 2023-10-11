@@ -48,4 +48,9 @@ public class MymUtil {
         response.setMessage(String.format(Constants.FAILED_, ex.getMessage()));
     }
 
+    public static String createLog(String correlationId, String message) {
+
+        return String.format(Constants.LOG_MESSAGE_STRUCTURE, correlationId, message);
+    }
+
 }

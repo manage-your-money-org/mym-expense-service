@@ -4,11 +4,14 @@ import com.rkumar0206.mymexpenseservice.constantsAndEnums.ErrorMessageConstants;
 import com.rkumar0206.mymexpenseservice.domain.Expense;
 import com.rkumar0206.mymexpenseservice.domain.PaymentMethod;
 import com.rkumar0206.mymexpenseservice.exception.ExpenseException;
+import com.rkumar0206.mymexpenseservice.feignClient.ExpenseCategoryAPI;
+import com.rkumar0206.mymexpenseservice.models.FeignClientResponses.ExpenseCategory;
 import com.rkumar0206.mymexpenseservice.models.UserInfo;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSum;
 import com.rkumar0206.mymexpenseservice.models.data.ExpenseAmountSumAndCategoryKey;
 import com.rkumar0206.mymexpenseservice.models.request.ExpenseRequest;
 import com.rkumar0206.mymexpenseservice.models.request.FilterRequest;
+import com.rkumar0206.mymexpenseservice.models.response.CustomResponse;
 import com.rkumar0206.mymexpenseservice.models.response.ExpenseResponse;
 import com.rkumar0206.mymexpenseservice.repository.ExpenseRepository;
 import com.rkumar0206.mymexpenseservice.repository.PaymentMethodRepository;
@@ -16,16 +19,17 @@ import com.rkumar0206.mymexpenseservice.utility.ModelMapper;
 import com.rkumar0206.mymexpenseservice.utility.MymUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final UserContextService userContextService;
+    private final ExpenseCategoryAPI expenseCategoryAPI;
+
+    @Value("${pagination.maxPageSizeAllowed}")
+    private int maxPageSizeAllowed;
 
     @Override
     public ExpenseResponse create(ExpenseRequest request) {
@@ -60,7 +68,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         );
 
         expenseRepository.save(expense);
-        return ModelMapper.buildExpenseResponse(expense, finalPaymentMethod);
+
+
+        return ModelMapper.buildExpenseResponse(expense, getExpenseCategory(expense.getCategoryKey()), finalPaymentMethod);
     }
 
 
@@ -91,7 +101,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         expenseRepository.save(expenseDB.get());
 
-        return ModelMapper.buildExpenseResponse(expenseDB.get(), finalPaymentMethod);
+        return ModelMapper.buildExpenseResponse(expenseDB.get(), getExpenseCategory(expenseDB.get().getCategoryKey()), finalPaymentMethod);
     }
 
     private void handlePaymentMethodsAddition(
@@ -165,7 +175,36 @@ public class ExpenseServiceImpl implements ExpenseService {
                 ? new ArrayList<>()
                 : paymentMethodRepository.findByUidAndKeyIn(uid, expense.get().getPaymentMethodKeys());
 
-        return ModelMapper.buildExpenseResponse(expense.get(), paymentMethods);
+        ExpenseCategory expenseCategory = getExpenseCategory(expense.get().getCategoryKey());
+
+        return ModelMapper.buildExpenseResponse(expense.get(), expenseCategory, paymentMethods);
+    }
+
+    private ExpenseCategory getExpenseCategory(String categoryKey) {
+
+        log.info(MymUtil.createLog(
+                userContextService.getCorrelationId(),
+                "Sending request to expense-category-service for getting category by key"
+        ));
+
+        ResponseEntity<CustomResponse<ExpenseCategory>> categoryResponse = expenseCategoryAPI.getExpenseCategoryByKey(
+                userContextService.getAuthorizationToken(),
+                userContextService.getCorrelationId(),
+                userContextService.getUserInfoHeaderValue(),
+                categoryKey
+        );
+
+        log.info(MymUtil.createLog(
+                userContextService.getCorrelationId(),
+                "Response code : " + categoryResponse.getStatusCode()
+        ));
+
+        if (categoryResponse.getStatusCode() == HttpStatus.OK) {
+
+            return Objects.requireNonNull(categoryResponse.getBody()).getBody();
+        }
+
+        return ExpenseCategory.builder().key(categoryKey).build();
     }
 
 
@@ -278,6 +317,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         List<PaymentMethod> userPaymentMethod = paymentMethodRepository.findByUid(uid);
 
+        List<ExpenseCategory> expenseCategoriesOfUser = getExpenseCategoriesOfUser();
+
         List<ExpenseResponse> expenseResponses = new ArrayList<>();
 
         for (Expense expense : expenses.getContent()) {
@@ -293,10 +334,66 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
             }
 
-            expenseResponses.add(ModelMapper.buildExpenseResponse(expense, paymentMethods));
+            ExpenseCategory expenseCategory = ExpenseCategory.builder().key(expense.getCategoryKey()).build();
+
+            for (ExpenseCategory ec : expenseCategoriesOfUser) {
+
+                if (ec.getKey().equals(expense.getCategoryKey())) {
+
+                    expenseCategory = ec;
+                    break;
+                }
+            }
+
+            expenseResponses.add(ModelMapper.buildExpenseResponse(expense, expenseCategory, paymentMethods));
         }
 
         return expenseResponses;
     }
 
+    private List<ExpenseCategory> getExpenseCategoriesOfUser() {
+
+        List<ExpenseCategory> expenseCategories = new ArrayList<>();
+
+        int retryCount = 1;
+        int pageNumber = 0;
+
+        log.info(MymUtil.createLog(
+                userContextService.getCorrelationId(),
+                "Sending request to expense-category-service for getting user categories"
+        ));
+
+        while (true) {
+
+            // get user expense categories
+            ResponseEntity<CustomResponse<Page<ExpenseCategory>>> expenseCategoryOfUserResponse = expenseCategoryAPI.getExpenseCategoryOfUser(
+                    userContextService.getAuthorizationToken(),
+                    userContextService.getCorrelationId(),
+                    userContextService.getUserInfoHeaderValue(),
+                    PageRequest.of(pageNumber, maxPageSizeAllowed == 0 ? 200 : maxPageSizeAllowed)
+            );
+
+            if (expenseCategoryOfUserResponse.getStatusCode() == HttpStatus.OK) {
+
+                expenseCategories = Objects.requireNonNull(expenseCategoryOfUserResponse.getBody()).getBody().getContent();
+
+                int totalPages = expenseCategoryOfUserResponse.getBody().getBody().getTotalPages();
+
+                if ((totalPages - 1) == pageNumber) {
+                    break;
+                } else {
+                    ++pageNumber;
+                }
+            } else {
+
+                if (retryCount == 3) {
+                    break;
+                } else {
+                    ++retryCount;
+                }
+            }
+        }
+
+        return expenseCategories;
+    }
 }

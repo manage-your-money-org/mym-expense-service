@@ -82,7 +82,7 @@ class ExpenseControllerTest {
                 null
         );
 
-        when(expenseService.create(expenseRequest)).thenReturn(ModelMapper.buildExpenseResponse(tempExpense, new ArrayList<>()));
+        when(expenseService.create(expenseRequest)).thenReturn(ModelMapper.buildExpenseResponse(tempExpense, null, new ArrayList<>()));
 
         ResponseEntity<CustomResponse<ExpenseResponse>> actual =
                 expenseController.createExpense(UUID.randomUUID().toString(), expenseRequest);
@@ -127,7 +127,7 @@ class ExpenseControllerTest {
 
         tempExpense.setAmount(10000.0);
         when(expenseService.update(expenseRequest)).thenReturn(ModelMapper.buildExpenseResponse(
-                tempExpense, null
+                tempExpense, null, null
         ));
 
         ResponseEntity<CustomResponse<ExpenseResponse>> actual =
@@ -218,7 +218,7 @@ class ExpenseControllerTest {
     void getAllExpenseByUid_Success() {
 
         when(expenseService.getUserExpenses(any(), any()))
-                .thenReturn(new PageImpl<>(List.of(ModelMapper.buildExpenseResponse(tempExpense, null)), pageable, 1));
+                .thenReturn(new PageImpl<>(List.of(ModelMapper.buildExpenseResponse(tempExpense, null, null)), pageable, 1));
 
         ResponseEntity<CustomResponse<Page<ExpenseResponse>>> actual = expenseController.getAllExpenseByUid(
                 pageable, UUID.randomUUID().toString(), new FilterRequest()
@@ -233,7 +233,7 @@ class ExpenseControllerTest {
     void getAllExpenseByUid_DateRangeIsValid_SUCCESS() {
 
         when(expenseService.getUserExpenses(any(), any()))
-                .thenReturn(new PageImpl<>(List.of(ModelMapper.buildExpenseResponse(tempExpense, null)), pageable, 1));
+                .thenReturn(new PageImpl<>(List.of(ModelMapper.buildExpenseResponse(tempExpense, null, null)), pageable, 1));
 
         ResponseEntity<CustomResponse<Page<ExpenseResponse>>> actual = expenseController.getAllExpenseByUid(
                 pageable, UUID.randomUUID().toString(),
@@ -265,7 +265,7 @@ class ExpenseControllerTest {
     void getExpenseByKey_Success() {
 
         when(expenseService.getExpenseByKey(anyString())).thenReturn(
-                ModelMapper.buildExpenseResponse(tempExpense, null)
+                ModelMapper.buildExpenseResponse(tempExpense, null, null)
         );
 
         ResponseEntity<CustomResponse<ExpenseResponse>> actual = expenseController.getExpenseByKey(
