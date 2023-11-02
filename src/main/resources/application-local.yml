@@ -28,3 +28,11 @@ pagination:
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - "*"
+      base-path: "/mym/${spring.application.name}/actuator"
