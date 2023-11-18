@@ -28,6 +28,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 
@@ -211,12 +212,16 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public Page<ExpenseResponse> getUserExpenses(
             Pageable pageable,
-            FilterRequest filterRequest
+            @RequestBody FilterRequest filterRequest
     ) {
 
         String uid = getUserInfo().getUid();
 
         Page<Expense> expenses;
+
+        if (filterRequest == null) {
+            filterRequest = new FilterRequest();
+        }
 
         if (filterRequest.getCategoryKeys() != null && filterRequest.getPaymentMethodKeys() != null && filterRequest.getDateRange() != null) {
 
