@@ -100,7 +100,7 @@ public class ExpenseController {
     }
 
 
-    @GetMapping()
+    @PostMapping()
     public ResponseEntity<CustomResponse<Page<ExpenseResponse>>> getAllExpenseByUid(
             Pageable pageable,
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
@@ -156,7 +156,7 @@ public class ExpenseController {
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
 
-    @GetMapping("/amount/sum")
+    @PostMapping("/amount/sum")
     public ResponseEntity<CustomResponse<ExpenseAmountSum>> getExpenseAmountSum(
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
             @RequestBody(required = false) FilterRequest filter
@@ -179,7 +179,7 @@ public class ExpenseController {
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatus()));
     }
 
-    @GetMapping("/amount/sum/all/category")
+    @PostMapping("/amount/sum/all/category")
     public ResponseEntity<CustomResponse<List<ExpenseAmountSumAndCategoryKey>>> getExpenseAmountForEachCategory(
             @RequestHeader(Headers.CORRELATION_ID) String correlationId,
             @RequestBody(required = false) FilterRequest filterRequest
