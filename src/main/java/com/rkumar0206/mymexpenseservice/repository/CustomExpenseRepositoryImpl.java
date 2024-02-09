@@ -45,7 +45,7 @@ public class CustomExpenseRepositoryImpl implements CustomExpenseRepository {
         LimitOperation limit = Aggregation.limit(pageable.getPageSize());
         SortOperation sort = Aggregation.sort(pageable.getSort().isEmpty() ? Sort.by(Sort.Direction.DESC, "expenseDate") : pageable.getSort());
 
-        Aggregation aggregation = Aggregation.newAggregation(match, skip, limit, sort);
+        Aggregation aggregation = Aggregation.newAggregation(match, sort, skip, limit);
 
         AggregationResults<Expense> result = mongoTemplate.aggregate(aggregation, Expense.class, Expense.class);
 
