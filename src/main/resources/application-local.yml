@@ -3,7 +3,7 @@ spring:
     name: mym-expense-service
   data:
     mongodb:
-      uri: mongodb+srv://rkumar0205mym:mnirks0206@manageyourmoneycluster.dfkepd9.mongodb.net/?retryWrites=true&w=majority
+      uri: ${mongo.uri}
       database: mym-expense-db
 
 myEureka:

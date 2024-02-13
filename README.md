@@ -1,2 +1,6 @@
 # mym-expense-service
-Expense micro service for ManageYourMoney Backend
+Expense microservice for ManageYourMoney Backend
+
+### Required Environment Variables for running in local
+
+1. `mongo.uri=`
